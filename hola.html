@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Adivina tu número Hacker Edition</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
+      background: black;
+      font-family: 'Courier New', Courier, monospace;
+      color: #00ff00;
+    }
+
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 0;
+    }
+
+    #contenedor {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      z-index: 1;
+      background-color: rgba(0,0,0,0.6);
+      padding: 30px;
+      border-radius: 10px;
+      width: 400px;
+    }
+
+    input, button {
+      padding: 10px;
+      font-size: 16px;
+      margin-top: 10px;
+      width: 80%;
+      background: #111;
+      border: 1px solid #0f0;
+      color: #0f0;
+      border-radius: 5px;
+    }
+
+    button {
+      background: red;
+      color: white;
+      cursor: pointer;
+    }
+
+    #mensaje, #resultado {
+      margin-top: 20px;
+      font-size: 18px;
+    }
+
+    #barra {
+      width: 100%;
+      background-color: #333;
+      height: 20px;
+      border-radius: 10px;
+      overflow: hidden;
+      display: none;
+      margin-top: 15px;
+    }
+
+    #progreso {
+      width: 0%;
+      height: 100%;
+      background-color: #00ff00;
+      transition: width 0.3s;
+    }
+
+    .matrix-msg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      font-size: 14px;
+      white-space: pre;
+      color: #00ff00;
+      z-index: 0;
+      pointer-events: none;
+      opacity: 0.1;
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="matrixCanvas"></canvas>
+
+<div id="contenedor">
+  <h2>Piensa un número del 1 al 15 y escríbelo:</h2>
+  <input type="text" id="numero" placeholder="Escribe tu número">
+  <br>
+  <button onclick="procesar()">Suprimir</button>
+
+  <div id="mensaje"></div>
+  <div id="barra">
+    <div id="progreso"></div>
+  </div>
+  <div id="resultado"></div>
+</div>
+
+<script>
+  // Efecto Matrix
+  const canvas = document.getElementById("matrixCanvas");
+  const ctx = canvas.getContext("2d");
+
+  canvas.height = window.innerHeight;
+  canvas.width = window.innerWidth;
+
+  const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789@#$%^&*()*&^%";
+  const fontSize = 14;
+  const columns = canvas.width / fontSize;
+  const drops = Array(Math.floor(columns)).fill(1);
+
+  function drawMatrix() {
+    ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#0F0";
+    ctx.font = fontSize + "px monospace";
+
+    for (let i = 0; i < drops.length; i++) {
+      const text = letters.charAt(Math.floor(Math.random() * letters.length));
+      ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+      if (drops[i] * fontSize > canvas.height && Math.random() > 0.975)
+        drops[i] = 0;
+
+      drops[i]++;
+    }
+  }
+
+  setInterval(drawMatrix, 35);
+
+  // Interacción con usuario
+  const mensajes = [
+    "Analizando tu pensamiento...",
+    "Procesando la memoria...",
+    "Renderizando conexión cognitiva..."
+  ];
+
+  function procesar() {
+    const numero = document.getElementById("numero").value.trim();
+    document.getElementById("numero").style.display = "none";
+    document.querySelector("button").style.display = "none";
+    document.getElementById("mensaje").innerText = "";
+    document.getElementById("resultado").innerText = "";
+    document.getElementById("barra").style.display = "block";
+    document.getElementById("progreso").style.width = "0%";
+
+    if (numero === "13") {
+      lluviaTexto("NO ESCRIBAS 13 ASÍ");
+      return;
+    }
+
+    let paso = 0;
+    let mensajeIndex = 0;
+
+    const intervalo = setInterval(() => {
+      paso++;
+      document.getElementById("progreso").style.width = `${(paso / 150) * 100}%`;
+
+      if (paso % 50 === 1 && mensajeIndex < mensajes.length) {
+        document.getElementById("mensaje").innerText = mensajes[mensajeIndex];
+        mensajeIndex++;
+      }
+
+      if (paso >= 150) {
+        clearInterval(intervalo);
+        mostrarResultado(numero);
+      }
+    }, 30);
+  }
+
+  function mostrarResultado(numero) {
+    const contenedor = document.getElementById("resultado");
+
+    if (isNaN(numero)) {
+      contenedor.innerText = "Pero escribe números, no letras muerde tobillos 🐶😂";
+    } else {
+      const num = parseInt(numero);
+      if (num > 15) {
+        contenedor.innerText = "pero tú eres un bolo\nAparte de bajita, tonta jajaj dije menor que 15";
+      } else if (num === 13) {
+        contenedor.innerText = "12 + 1 🤨🤨";
+      } else {
+        contenedor.innerText = "Tu número es: " + num;
+      }
+    }
+  }
+
+  function lluviaTexto(texto) {
+    for (let i = 0; i < 200; i++) {
+      const div = document.createElement("div");
+      div.className = "matrix-msg";
+      div.innerText = texto;
+      div.style.left = `${Math.random() * window.innerWidth}px`;
+      div.style.top = `${-Math.random() * 300}px`;
+      div.style.opacity = 0.3 + Math.random() * 0.7;
+      div.style.fontSize = `${12 + Math.random() * 10}px`;
+      document.body.appendChild(div);
+
+      let pos = parseFloat(div.style.top);
+      const anim = setInterval(() => {
+        pos += 2;
+        div.style.top = pos + "px";
+        if (pos > window.innerHeight) {
+          clearInterval(anim);
+          div.remove();
+        }
+      }, 20);
+    }
+  }
+</script>
+
+</body>
+</html>
